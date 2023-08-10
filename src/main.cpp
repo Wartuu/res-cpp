@@ -39,8 +39,9 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
-    std::string header = R"(
-/*
+    std::ofstream outputStream(output);
+
+    std::string header = R"(/*
  *   https://github.com/Wartuu/res-cpp
  *   
  *   MIT License
@@ -73,6 +74,9 @@ namespace resource {
     )";
 
 
+    outputStream << header;
+
+
     std::vector<std::vector<unsigned char>> files;
 
     for(const auto& file : std::filesystem::directory_iterator(resources)) {
@@ -97,14 +101,14 @@ namespace resource {
 
         fs.close();
 
-        header += "unsigned char " + makeVariableName(file.path().filename().string()) + "[] {\n\t";
+        outputStream << "unsigned char " + makeVariableName(file.path().filename().string()) + "[] {\n\t";
 
         std::stringstream ss;
 
         int counter = 0;
         for(int i = 0; i < buffer.size(); ++i) {
 
-            if(counter == 10) {
+            if(counter == 50) {
                 ss << "\n\t";
                 counter = 0;
             }
@@ -119,23 +123,13 @@ namespace resource {
             counter++;
         }
 
-        header += ss.str();
-        header += "\n};\n\n";
+        outputStream << ss.str();
+        outputStream << "\n};\n\n";
 
         std::cout << "added '" << file.path() << "', " << file.file_size() << "b\n";
     }
 
-    header += "};\n\n #endif //RESOURCE_CPP";
-
-
-    std::ofstream outputStream(output);
-
-    if(!outputStream.is_open()) {
-        std::cout << "ERR: failed to open '" << output << "'\n";
-        exit(-1);
-    }
-
-    outputStream << header;
+    outputStream << "};\n\n #endif //RESOURCE_CPP";\
     outputStream.close();
 
 
